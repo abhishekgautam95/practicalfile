@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class 12 CS Practical File</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap');
+
+        body { 
+            font-family: 'Poppins', sans-serif;
+            background: #f3f4f6; 
+            color: #000;
+            margin: 0;
+        }
+
+        /* --- UI Controls (Hidden in PDF) --- */
+        .ui-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .form-card {
+            background: white; padding: 2.5rem; border-radius: 20px;
+            width: 90%; max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- A4 Page Layout --- */
+        .print-container { width: 210mm; margin: 0 auto; padding-top: 20px; }
+        
+        .page { 
+            background: white; width: 210mm; height: 297mm; /* Fixed A4 */
+            padding: 0; margin-bottom: 20px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            page-break-after: always;
+        }
+
+        /* --- DESIGN ELEMENTS --- */
+        
+        /* Professional Double Border */
+        .border-outer {
+            position: absolute; top: 10mm; left: 10mm; right: 10mm; bottom: 10mm;
+            border: 3px solid #1e40af; pointer-events: none; z-index: 5;
+        }
+        .border-inner {
+            position: absolute; top: 12mm; left: 12mm; right: 12mm; bottom: 12mm;
+            border: 1px solid #60a5fa; pointer-events: none; z-index: 5;
+        }
+
+        /* Safe Content Area */
+        .content {
+            padding: 25mm 20mm; /* Top/Bottom Left/Right */
+            height: 100%;
+            position: relative;
+            z-index: 10;
+            display: flex; flex-direction: column;
+        }
+
+        /* Headers */
+        h1.main-title { font-family: 'Playfair Display', serif; font-size: 32pt; color: #1e3a8a; text-align: center; margin-bottom: 5px; }
+        h2.sub-title { font-family: 'Poppins', sans-serif; font-size: 14pt; letter-spacing: 3px; color: #64748b; text-align: center; margin-bottom: 30px; text-transform: uppercase; }
+        
+        h2.topic-head {
+            font-size: 18pt; font-weight: 700; color: #1e3a8a;
+            border-bottom: 3px solid #fcd34d; /* Yellow accent */
+            display: inline-block; margin-bottom: 15px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        h3 { font-size: 11pt; font-weight: 600; color: #334155; margin-top: 15px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        h3::before { content: ''; display: block; width: 6px; height: 6px; background: #2563eb; border-radius: 50%; }
+
+        p, li { font-size: 10.5pt; line-height: 1.5; text-align: justify; margin-bottom: 5px; color: #1f2937; }
+
+        /* Code Blocks - Attractive & Readable */
+        .code-box {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f8fafc; border: 1px solid #cbd5e1;
+            border-left: 5px solid #6366f1; /* Indigo left border */
+            padding: 12px; border-radius: 6px;
+            font-size: 9.5pt; white-space: pre-wrap; margin: 10px 0; color: #0f172a;
+        }
+
+        /* Output Blocks */
+        .output-box {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1e293b; color: #f1f5f9; /* Dark mode terminal look */
+            padding: 12px; border-radius: 6px;
+            font-size: 9.5pt; white-space: pre-wrap; margin: 10px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Footer */
+        .page-num { position: absolute; bottom: 15mm; right: 15mm; font-weight: bold; font-size: 10pt; color: #94a3b8; }
+
+        /* Index Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10pt; }
+        th { background: #1e40af; color: white; padding: 8px; text-align: center; }
+        td { border-bottom: 1px solid #cbd5e1; padding: 6px 10px; }
+        tr:nth-child(even) { background: #f1f5f9; }
+
+        /* --- PRINT SETTINGS --- */
+        @media print {
+            @page {
+                size: A4;
+                margin: 0; /* Remove browser default margins (header/footer URLs) */
+            }
+            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .ui-overlay, .no-print { display: none !important; }
+            .print-container { width: 100%; margin: 0; padding: 0; }
+            .page { 
+                margin: 0; 
+                box-shadow: none; 
+                page-break-after: always; 
+                border: none;
+                width: 210mm;
+                height: 297mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- INPUT FORM OVERLAY -->
+    <div id="ui" class="ui-overlay">
+        <div class="form-card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-blue-900">📝 File Details</h2>
+                <div class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Session 2025-26</div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <input id="in_name" type="text" placeholder="Name (e.g. Rahul)" class="p-3 border rounded w-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                <input id="in_roll" type="text" placeholder="Roll No" class="p-3 border rounded w-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                <input id="in_class" type="text" value="XII" class="p-3 border rounded w-full bg-gray-50 text-center font-bold" readonly>
+                <div class="hidden">Section removed</div>
+                <input id="in_school" type="text" placeholder="School Name" class="col-span-2 p-3 border rounded w-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                <input id="in_teacher" type="text" placeholder="Teacher's Name" class="col-span-2 p-3 border rounded w-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <button onclick="generateAndPrint()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 flex justify-center items-center gap-2">
+                <i class="fas fa-file-pdf"></i> Generate & Download PDF
+            </button>
+            <p class="text-xs text-center mt-4 text-red-500 font-bold">
+                NOTE: Print Window khulne par "Save as PDF" select karein aur "More Settings" -> "Headers and footers" UNCHECK karein.
+            </p>
+        </div>
+    </div>
+
+    <!-- DOCUMENT CONTENT -->
+    <div class="print-container">
+
+        <!-- 1. COVER PAGE -->
+        <div class="page">
+            <div class="border-outer"></div><div class="border-inner"></div>
+            <div class="content flex flex-col justify-center items-center text-center">
+                <div class="mb-10">
+                    <h1 class="main-title" style="font-size: 40pt;">COMPUTER SCIENCE</h1>
+                    <h2 class="sub-title">PRACTICAL FILE</h2>
+                </div>
+
+                <div class="w-48 h-48 rounded-full flex items-center justify-center mb-10 overflow-hidden">
+                    <!-- Yahan 'logo.png' aapki image file ka naam hai -->
+                    <img src="logo.png" alt="School Logo" class="w-full h-full object-cover">
+                </div>
+
+                <div class="text-xl font-bold text-gray-700 mb-12">
+                    <p>Session: 2025-26</p>
+                    <p>AISSCE (Code 083)</p>
+                </div>
+
+                <div class="w-3/4 bg-blue-50 border-l-4 border-blue-600 p-8 text-left rounded shadow-sm">
+                    <div class="grid grid-cols-3 gap-3 text-lg">
+                        <span class="font-bold text-blue-900">Name:</span> <span class="out_name col-span-2">_______________</span>
+                        <span class="font-bold text-blue-900">Class:</span> <span class="col-span-2">XII</span>
+                        <span class="font-bold text-blue-900">Roll No:</span> <span class="out_roll col-span-2">_______________</span>
+                        <span class="font-bold text-blue-900">School:</span> <span class="out_school col-span-2">_______________</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CERTIFICATE -->
+        <div class="page">
+            <div class="border-outer"></div><div class="border-inner"></div>
+            <div class="content flex flex-col justify-between p-10">
+                <div class="text-center mt-12">
+                    <h1 class="main-title" style="text-decoration: underline; text-decoration-color: #fcd34d;">CERTIFICATE</h1>
+                    <br><br>
+                    <p style="font-size: 16pt; line-height: 2.2; text-align: center;">
+                        This is to certify that <strong><span class="out_name text-blue-800">________</span></strong> of Class <strong>XII</strong> has successfully completed the practical file for the subject <strong>Computer Science (083)</strong>.<br>
+                        The programs and projects mentioned in this file are original and cover the syllabus prescribed by CBSE for the session 2025-26.
+                    </p>
+                </div>
+                <div class="flex justify-between px-8 mb-10">
+                    <div class="text-center">
+                        <div class="w-48 border-b-2 border-black mb-2"></div>
+                        <span class="out_teacher font-bold"></span><br>Teacher In-Charge
+                    </div>
+                    <div class="text-center">
+                        <div class="w-48 border-b-2 border-black mb-2"></div>
+                        <span class="font-bold">External Examiner</span><br>Signature
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. ACKNOWLEDGEMENT -->
+        <div class="page">
+            <div class="border-outer"></div><div class="border-inner"></div>
+            <div class="content p-12">
+                <h1 class="main-title" style="text-decoration: underline; text-decoration-color: #fcd34d; margin-top: 40px;">ACKNOWLEDGEMENT</h1>
+                <br>
+                <p style="font-size: 14pt; line-height: 2;">
+                    I would like to express my sincere gratitude to my Computer Science teacher, <strong><span class="out_teacher text-blue-800">________</span></strong>, for their valuable guidance and support in completing this practical file.
+                </p>
+                <p style="font-size: 14pt; line-height: 2;">
+                    I would also like to thank our Principal and the school administration of <strong><span class="out_school text-blue-800">________</span></strong> for providing the necessary computer lab facilities which made this work possible.
+                </p>
+                <div class="mt-32 text-right text-lg">
+                    <strong><span class="out_name">________</span></strong><br>Class XII
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. INDEX -->
+        <div class="page">
+            <div class="border-outer"></div><div class="border-inner"></div>
+            <div class="content">
+                <h1 class="main-title" style="border-bottom: 3px solid #1e3a8a; display: inline-block;">INDEX</h1>
+                <table>
+                    <thead><tr><th style="width: 50px;">S.No</th><th>Program Name</th><th style="width: 60px;">Page</th></tr></thead>
+                    <tbody>
+                        <!-- Python -->
+                        <tr><td colspan="3" class="bg-gray-200 font-bold text-center">PYTHON PROGRAMMING</td></tr>
+                        <tr><td class="text-center">1</td><td>Sum of First n Natural Numbers</td><td class="text-center">1</td></tr>
+                        <tr><td class="text-center">2</td><td>Factorial of a Number</td><td class="text-center">2</td></tr>
+                        <tr><td class="text-center">3</td><td>Generate Fibonacci Series</td><td class="text-center">3</td></tr>
+                        <tr><td class="text-center">4</td><td>Check Prime Number</td><td class="text-center">4</td></tr>
+                        <tr><td class="text-center">5</td><td>Find Largest & Smallest in List</td><td class="text-center">5</td></tr>
+                        <tr><td class="text-center">6</td><td>Menu-Driven Program Using List</td><td class="text-center">6</td></tr>
+                        <tr><td class="text-center">7</td><td>Menu-Driven Program Using Tuple</td><td class="text-center">7</td></tr>
+                        <tr><td class="text-center">8</td><td>Menu-Driven Program Using Dictionary</td><td class="text-center">8</td></tr>
+                        <tr><td class="text-center">9</td><td>Stack Implementation Using List</td><td class="text-center">9</td></tr>
+                        <tr><td class="text-center">10</td><td>Queue Implementation Using List</td><td class="text-center">10</td></tr>
+                        <tr><td class="text-center">11</td><td>Generate Random Numbers</td><td class="text-center">11</td></tr>
+                        <tr><td class="text-center">12</td><td>Text File Handling (Write/Read)</td><td class="text-center">12</td></tr>
+                        <tr><td class="text-center">13</td><td>Count Lines, Words, Characters</td><td class="text-center">13</td></tr>
+                        <tr><td class="text-center">14</td><td>Copy Text File</td><td class="text-center">14</td></tr>
+                        <tr><td class="text-center">15</td><td>Binary File: Create and Read</td><td class="text-center">15</td></tr>
+                        <tr><td class="text-center">16</td><td>Binary File: Search Record</td><td class="text-center">16</td></tr>
+                        <tr><td class="text-center">17</td><td>Binary File: Update Record</td><td class="text-center">17</td></tr>
+                        <tr><td class="text-center">18</td><td>Python-MySQL Connectivity</td><td class="text-center">18</td></tr>
+                        <tr><td class="text-center">19</td><td>Python-MySQL: Insert & Display</td><td class="text-center">19</td></tr>
+                        <!-- SQL -->
+                        <tr><td colspan="3" class="bg-gray-200 font-bold text-center">SQL QUERIES</td></tr>
+                        <tr><td class="text-center">20</td><td>Create Database and Table</td><td class="text-center">20</td></tr>
+                        <tr><td class="text-center">21</td><td>Insert Records</td><td class="text-center">21</td></tr>
+                        <tr><td class="text-center">22</td><td>SELECT Statement Queries</td><td class="text-center">22</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PROGRAMS (Each in a separate page container) -->
+        
+        <!-- P1 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 1</h2>
+            <h3>Aim</h3><p>To write a Python program to calculate the sum of first n natural numbers entered by the user.</p>
+            <h3>Introduction</h3><p>Natural numbers are the set of positive integers starting from 1 (e.g., 1, 2, 3...). The sum of the first 'n' natural numbers is a fundamental concept in mathematics and computer science. This program demonstrates the use of looping constructs in Python to perform cumulative addition, which is a common pattern in algorithms.</p>
+            <h3>Algorithm</h3>
+            <ul class="list-decimal list-inside ml-4 text-sm">
+                <li>Start the program.</li>
+                <li>Input a number 'n' from the user.</li>
+                <li>Initialize <code>sum = 0</code>.</li>
+                <li>Loop from 1 to n. Add loop variable to sum.</li>
+                <li>Display the final sum.</li>
+                <li>Stop.</li>
+            </ul>
+            <h3>Source Code</h3>
+<div class="code-box">n = int(input("Enter a number: "))
+sum = 0
+for i in range(1, n + 1):
+    sum = sum + i
+print("Sum of first", n, "natural numbers is:", sum)</div>
+            <h3>Output</h3>
+<div class="output-box">Enter a number: 5
+Sum of first 5 natural numbers is: 15</div>
+            <h3>Result</h3><p>The program successfully calculated the sum of first n natural numbers.</p>
+            <div class="page-num">Page 1</div>
+        </div></div>
+
+        <!-- P2 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 2</h2>
+            <h3>Aim</h3><p>To write a Python program to calculate the factorial of a number entered by the user.</p>
+            <h3>Introduction</h3><p>The factorial of a non-negative integer 'n', denoted by n!, is the product of all positive integers less than or equal to n. Factorials are widely used in combinatorics, algebra, and mathematical analysis. Example: 4! = 1*2*3*4 = 24.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Start.</li><li>Input number n.</li><li>Initialize <code>fact = 1</code>.</li><li>Loop 1 to n. Multiply current value to fact.</li><li>Print fact.</li><li>Stop.</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">n = int(input("Enter a number: "))
+fact = 1
+for i in range(1, n + 1):
+    fact = fact * i
+print("Factorial of", n, "is:", fact)</div>
+            <h3>Output</h3><div class="output-box">Enter a number: 4
+Factorial of 4 is: 24</div>
+            <h3>Result</h3><p>The factorial of the number was calculated successfully.</p>
+            <div class="page-num">Page 2</div>
+        </div></div>
+
+        <!-- P3 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 3</h2>
+            <h3>Aim</h3><p>To write a Python program to generate Fibonacci series up to a given number of terms.</p>
+            <h3>Introduction</h3><p>The Fibonacci sequence is a series of numbers where each number is the sum of the two preceding ones, usually starting with 0 and 1. It appears frequently in mathematics and nature (0, 1, 1, 2, 3...).</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Start. Input n.</li><li>Set a=0, b=1.</li><li>Loop n times.</li><li>Print a.</li><li>Update: c=a+b, a=b, b=c.</li><li>Stop.</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">n = int(input("Terms: "))
+a, b = 0, 1
+for i in range(n):
+    print(a, end=" ")
+    a, b = b, a + b</div>
+            <h3>Output</h3><div class="output-box">Terms: 5
+0 1 1 2 3</div>
+            <h3>Result</h3><p>The Fibonacci series was generated successfully.</p>
+            <div class="page-num">Page 3</div>
+        </div></div>
+
+        <!-- P4 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 4</h2>
+            <h3>Aim</h3><p>To write a Python program to check whether a given number is a prime number or not.</p>
+            <h3>Introduction</h3><p>A prime number is a natural number greater than 1 that has only two factors, 1 and itself. Examples include 2, 3, 5, 7, 11, etc. Numbers less than 2 are not prime.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Start. Input n.</li><li>If n <= 1, print Not Prime.</li><li>Loop i from 2 to n-1.</li><li>If n is divisible by i, break and print Not Prime.</li><li>Else print Prime.</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">n = int(input("Num: "))
+if n > 1:
+    for i in range(2, n):
+        if (n % i) == 0:
+            print("Not Prime")
+            break
+    else: print("Prime")
+else: print("Not Prime")</div>
+            <h3>Output</h3><div class="output-box">Num: 7
+Prime</div>
+            <h3>Result</h3><p>The number was successfully checked for primality.</p>
+            <div class="page-num">Page 4</div>
+        </div></div>
+
+        <!-- P5 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 5</h2>
+            <h3>Aim</h3><p>To write a Python program to find the largest and smallest numbers from a given list.</p>
+            <h3>Introduction</h3><p>A list is a collection of multiple values stored in a single variable. Python provides built-in functions <code>max()</code> and <code>min()</code> to find extremes in a collection like a list.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Start. Input size n.</li><li>Loop n times to append elements to list L.</li><li>Print max(L) and min(L).</li><li>Stop.</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">L = [10, 50, 5, 80, 20]
+print("List:", L)
+print("Max:", max(L))
+print("Min:", min(L))</div>
+            <h3>Output</h3><div class="output-box">List: [10, 50, 5, 80, 20]
+Max: 80
+Min: 5</div>
+            <h3>Result</h3><p>Largest and smallest numbers were found successfully.</p>
+            <div class="page-num">Page 5</div>
+        </div></div>
+
+        <!-- P6 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 6</h2>
+            <h3>Aim</h3><p>To write a Python program to perform different operations on a list using a menu-driven approach.</p>
+            <h3>Introduction</h3><p>A menu-driven program allows the user to choose an operation from a list of options. Lists in Python are used to store multiple values in a single variable and allow dynamic operations.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Start. Init list L.</li><li>Loop Menu (1.Add, 2.Remove, 3.Show, 4.Exit).</li><li>Perform operation based on choice.</li><li>Stop on Exit.</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">L = []
+while True:
+    print("1.Add 2.Rem 3.Show 4.Exit")
+    ch = int(input("Choice: "))
+    if ch==1: L.append(int(input("Item: ")))
+    elif ch==2: 
+        v = int(input("Item: "))
+        if v in L: L.remove(v)
+    elif ch==3: print(L)
+    elif ch==4: break</div>
+            <h3>Output</h3><div class="output-box">1.Add 2.Rem 3.Show 4.Exit
+Choice: 1
+Item: 5
+Choice: 3
+[5]</div>
+            <h3>Result</h3><p>List operations performed successfully.</p>
+            <div class="page-num">Page 6</div>
+        </div></div>
+
+        <!-- P7 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 7</h2>
+            <h3>Aim</h3><p>To write a Python program to perform different operations on a tuple using a menu-driven approach.</p>
+            <h3>Introduction</h3><p>A tuple is an ordered collection of elements similar to a list, but it is immutable, which means its values cannot be changed directly. This program demonstrates tuple operations using a menu-driven method.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Start. Initialize tuple T.</li><li>Show Menu.</li><li>Add: T = T + (item,).</li><li>Remove: Convert to list, remove, convert back.</li><li>Stop.</li></ul>
+            <h3>Explanation</h3><p>Tuple stores multiple values in a single variable. Since tuples don't support append() or remove(), adding an element requires concatenation +. Removing an element requires type-casting to a mutable list.</p>
+            <h3>Source Code</h3>
+<div class="code-box">T = ()
+while True:
+    print("1.Add 2.Show 3.Exit")
+    ch = int(input("Choice: "))
+    if ch==1: T = T + (int(input("Val: ")),)
+    elif ch==2: print(T)
+    elif ch==3: break</div>
+            <h3>Output</h3><div class="output-box">1.Add 2.Show 3.Exit
+Choice: 1
+Val: 10
+Choice: 2
+(10,)</div>
+            <h3>Result</h3><p>Tuple operations performed successfully.</p>
+            <div class="page-num">Page 7</div>
+        </div></div>
+
+        <!-- P8 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 8</h2>
+            <h3>Aim</h3><p>To write a Python program to perform different operations on a dictionary using a menu-driven approach.</p>
+            <h3>Introduction</h3><p>A dictionary stores data in key–value pairs. It is used when data needs to be accessed using a unique key. This program demonstrates basic dictionary operations through a menu-driven method.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Start. Initialize dictionary D.</li><li>Show Menu.</li><li>Add: D[key] = value.</li><li>Delete: del D[key].</li><li>Stop.</li></ul>
+            <h3>Explanation</h3><p>Dictionary stores data as key–value pairs. Keys are unique and used to access values. add, delete, and display operations are performed. The del keyword removes a specific key-value pair.</p>
+            <h3>Source Code</h3>
+<div class="code-box">D = {}
+while True:
+    print("1.Add 2.Del 3.Show 4.Exit")
+    ch = int(input("Choice: "))
+    if ch==1: D[input("K:")] = input("V:")
+    elif ch==2: 
+        k = input("K:")
+        if k in D: del D[k]
+    elif ch==3: print(D)
+    elif ch==4: break</div>
+            <h3>Output</h3><div class="output-box">1.Add 2.Del 3.Show 4.Exit
+Choice: 1
+K:A
+V:Apple
+Choice: 3
+{'A': 'Apple'}</div>
+            <h3>Result</h3><p>Dictionary operations performed successfully.</p>
+            <div class="page-num">Page 8</div>
+        </div></div>
+
+        <!-- P9 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 9</h2>
+            <h3>Aim</h3><p>To write a Python program to implement stack operations using a list.</p>
+            <h3>Introduction</h3><p>A stack is a linear data structure that follows the LIFO (Last In First Out) principle. In this program, a Python list is used to perform stack operations.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Push: <code>list.append()</code>.</li><li>Pop: <code>list.pop()</code> (check empty).</li><li>View: Print list.</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">s = []
+s.append(10); print("Pushed 10")
+s.append(20); print("Pushed 20")
+print("Popped:", s.pop())
+print("Stack:", s)</div>
+            <h3>Output</h3><div class="output-box">Pushed 10
+Pushed 20
+Popped: 20
+Stack: [10]</div>
+            <h3>Result</h3><p>Stack operations executed successfully.</p>
+            <div class="page-num">Page 9</div>
+        </div></div>
+
+        <!-- P10 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 10</h2>
+            <h3>Aim</h3><p>To write a Python program to implement queue operations using a list.</p>
+            <h3>Introduction</h3><p>A queue is a linear data structure that follows the FIFO (First In First Out) principle. Elements are inserted from the rear and removed from the front of the queue.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Enqueue: <code>list.append()</code>.</li><li>Dequeue: <code>list.pop(0)</code> (check empty).</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">q = []
+q.append(1); print("Enqueued 1")
+q.append(2); print("Enqueued 2")
+print("Dequeued:", q.pop(0))
+print("Queue:", q)</div>
+            <h3>Output</h3><div class="output-box">Enqueued 1
+Enqueued 2
+Dequeued: 1
+Queue: [2]</div>
+            <h3>Result</h3><p>Queue operations executed successfully.</p>
+            <div class="page-num">Page 10</div>
+        </div></div>
+
+        <!-- P11 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 11</h2>
+            <h3>Aim</h3><p>To write a Python program to generate random numbers using the random module.</p>
+            <h3>Introduction</h3><p>Random numbers are numbers generated without any specific pattern. Python provides the random module to generate random numbers easily.</p>
+            <h3>Source Code</h3>
+<div class="code-box">import random
+print("Rand:", random.randint(1, 100))
+print("Rand:", random.randint(1, 100))</div>
+            <h3>Output</h3><div class="output-box">Rand: 45
+Rand: 12</div>
+            <h3>Result</h3><p>Random numbers generated successfully.</p>
+            <div class="page-num">Page 11</div>
+        </div></div>
+
+        <!-- P12 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 12</h2>
+            <h3>Aim</h3><p>To write a Python program to write data into a text file and read the data from it.</p>
+            <h3>Introduction</h3><p>File handling allows data to be stored permanently on secondary storage. Text files store data in readable form and are commonly used for data storage.</p>
+            <h3>Source Code</h3>
+<div class="code-box">f = open("data.txt", "w")
+f.write("Hello World")
+f.close()
+f = open("data.txt", "r")
+print(f.read())
+f.close()</div>
+            <h3>Output</h3>
+<div class="output-box">Hello World</div>
+            <h3>Result</h3><p>The data was successfully written to and read from the text file.</p>
+            <div class="page-num">Page 12</div>
+        </div></div>
+
+        <!-- P13 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 13</h2>
+            <h3>Aim</h3><p>To write a Python program to count the number of lines, words and characters in a text file.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Read file.</li><li>Count lines (len).</li><li>Split for words.</li><li>Count string length for chars.</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">f = open("data.txt", "r")
+lines = f.readlines()
+print("Lines:", len(lines))
+words = sum(len(l.split()) for l in lines)
+print("Words:", words)
+f.close()</div>
+            <h3>Output</h3><div class="output-box">Lines: 1
+Words: 2</div>
+            <h3>Result</h3><p>Counts calculated successfully.</p>
+            <div class="page-num">Page 13</div>
+        </div></div>
+
+        <!-- P14 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 14</h2>
+            <h3>Aim</h3><p>To write a Python program to copy the contents of one text file into another text file.</p>
+            <h3>Introduction</h3><p>File handling allows data to be transferred from one file to another. This program reads data from a source file and writes it into a destination file.</p>
+            <h3>Source Code</h3>
+<div class="code-box">s = open("data.txt", "r")
+d = open("copy.txt", "w")
+d.write(s.read())
+s.close(); d.close()
+print("Copied.")</div>
+            <h3>Output</h3><div class="output-box">Copied.</div>
+            <h3>Result</h3><p>File copied successfully.</p>
+            <div class="page-num">Page 14</div>
+        </div></div>
+
+        <!-- P15 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 15</h2>
+            <h3>Aim</h3><p>To write a Python program to create a binary file using the pickle module and display its contents.</p>
+            <h3>Introduction</h3><p>Binary files store data in machine-readable form. Python provides the pickle module to store and retrieve Python objects such as lists, dictionaries, etc., into binary files.</p>
+            <h3>Source Code</h3>
+<div class="code-box">import pickle
+data = [101, "Amit"]
+f = open("bfile.dat", "wb")
+pickle.dump(data, f); f.close()
+f = open("bfile.dat", "rb")
+print(pickle.load(f)); f.close()</div>
+            <h3>Output</h3><div class="output-box">[101, 'Amit']</div>
+            <h3>Result</h3><p>Binary file operations successful.</p>
+            <div class="page-num">Page 15</div>
+        </div></div>
+
+        <!-- P16 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 16</h2>
+            <h3>Aim</h3><p>To write a Python program to search a record in a binary file using the pickle module.</p>
+            <h3>Introduction</h3><p>Searching involves iterating through records and matching a key. This mimics database retrieval operations.</p>
+            <h3>Source Code</h3>
+<div class="code-box">import pickle
+target = 101
+f = open("bfile.dat", "rb")
+try:
+    while True:
+        r = pickle.load(f)
+        if r[0] == target: print("Found", r)
+except: pass
+f.close()</div>
+            <h3>Output</h3><div class="output-box">Found [101, 'Amit']</div>
+            <h3>Result</h3><p>Record searched successfully.</p>
+            <div class="page-num">Page 16</div>
+        </div></div>
+
+        <!-- P17 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 17</h2>
+            <h3>Aim</h3><p>To write a Python program to update a record in a binary file using the pickle module.</p>
+            <h3>Algorithm</h3><ul class="list-decimal list-inside ml-4 text-sm"><li>Read original file.</li><li>If match found, update data in memory.</li><li>Write (updated/old) data to temp file.</li><li>Rename temp to original.</li></ul>
+            <h3>Source Code</h3>
+<div class="code-box">import pickle, os
+f = open("bfile.dat", "rb")
+t = open("temp.dat", "wb")
+try:
+    while True:
+        r = pickle.load(f)
+        if r[0] == 101: r[1] = "Sumit"
+        pickle.dump(r, t)
+except: pass
+f.close(); t.close()
+os.remove("bfile.dat"); os.rename("temp.dat", "bfile.dat")
+print("Updated")</div>
+            <h3>Output</h3>
+<div class="output-box">Enter roll number to update: 101
+Record updated successfully</div>
+            <h3>Result</h3><p>The record in the binary file was successfully updated using the pickle module.</p>
+            <div class="page-num">Page 17</div>
+        </div></div>
+
+        <!-- P18 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 18</h2>
+            <h3>Aim</h3><p>To write a Python program to establish a connection between Python and MySQL database.</p>
+            <h3>Introduction</h3><p>Python can be connected with MySQL database to store and retrieve data programmatically. For this purpose, mysql-connector-python module is used, which allows Python to communicate with MySQL.</p>
+            <h3>Source Code</h3>
+<div class="code-box">import mysql.connector
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="password"
+)
+if mydb.is_connected():
+    print("Connection established successfully")
+mydb.close()</div>
+            <h3>Output</h3>
+<div class="output-box">Connection established successfully</div>
+            <h3>Result</h3><p>The connection between Python and MySQL database was established successfully.</p>
+            <div class="page-num">Page 18</div>
+        </div></div>
+
+        <!-- P19 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 19</h2>
+            <h3>Aim</h3><p>To write a Python program to insert records into a MySQL table and display the stored records.</p>
+            <h3>Introduction</h3><p>Python can interact with MySQL database to perform database operations such as inserting and displaying records. This program demonstrates how data can be added to a table and retrieved using Python–MySQL connectivity.</p>
+            <h3>Source Code</h3>
+<div class="code-box"># Connection assumed as 'con'
+cursor = con.cursor()
+cursor.execute("INSERT INTO Stu VALUES(1, 'A')")
+con.commit()
+cursor.execute("SELECT * FROM Stu")
+for x in cursor: print(x)</div>
+            <h3>Output</h3><div class="output-box">(1, 'A')</div>
+            <h3>Result</h3><p>Data inserted and retrieved successfully.</p>
+            <div class="page-num">Page 19</div>
+        </div></div>
+
+        <!-- P20 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 20</h2>
+            <h3>Aim</h3><p>To create a database and a table using SQL commands in MySQL.</p>
+            <h3>Introduction</h3><p>SQL (Structured Query Language) is used to create, manage and manipulate databases. A database stores data in an organized manner, while tables store data in rows and columns.</p>
+            <h3>SQL Commands</h3>
+<div class="code-box">CREATE DATABASE School;
+USE School;
+
+CREATE TABLE Student (
+    RollNo INT PRIMARY KEY,
+    Name VARCHAR(30),
+    Class VARCHAR(10),
+    Section VARCHAR(5),
+    Marks INT
+);
+
+DESC Student;</div>
+            <h3>Output</h3>
+<div class="output-box">Table Created. 
+Field   Type    Null    Key
+RollNo  int     NO      PRI</div>
+            <h3>Result</h3><p>The database and table were created successfully using SQL commands.</p>
+            <div class="page-num">Page 20</div>
+        </div></div>
+
+        <!-- P21 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 21</h2>
+            <h3>Aim</h3><p>To insert records into a table using SQL INSERT command in MySQL.</p>
+            <h3>Introduction</h3><p>After creating a table, data is stored in it using the INSERT command. Each record represents one complete row of information in the table.</p>
+            <h3>SQL Commands</h3>
+<div class="code-box">USE School;
+
+INSERT INTO Student VALUES
+(101, 'Amit', '12', 'A', 85),
+(102, 'Riya', '12', 'B', 90),
+(103, 'Rahul', '12', 'A', 78);
+
+SELECT * FROM Student;</div>
+            <h3>Output</h3>
+<div class="output-box">3 Rows Inserted.
+101 Amit 12 A 85
+102 Riya 12 B 90
+103 Rahul 12 A 78</div>
+            <h3>Result</h3><p>The records were successfully inserted into the table using SQL commands.</p>
+            <div class="page-num">Page 21</div>
+        </div></div>
+
+        <!-- P22 -->
+        <div class="page"><div class="border-outer"></div><div class="content">
+            <h2 class="topic-head">PRACTICAL 22</h2>
+            <h3>Aim</h3><p>To retrieve and display records from a table using the SQL SELECT statement.</p>
+            <h3>Introduction</h3><p>The SELECT statement is used to fetch data from a database table. It allows us to view complete data or selected columns from a table.</p>
+            <h3>SQL Commands</h3>
+<div class="code-box">-- All Records
+SELECT * FROM Student;
+
+-- Selected Columns
+SELECT RollNo, Name, Marks FROM Student;
+
+-- Sorted
+SELECT * FROM Student ORDER BY Marks;</div>
+            <h3>Output</h3>
+<div class="output-box">Records displayed based on query.</div>
+            <h3>Result</h3><p>Records were successfully retrieved and displayed using the SELECT statement.</p>
+            <div class="page-num">Page 22</div>
+        </div></div>
+
+    </div>
+
+    <script>
+        function generateAndPrint() {
+            // Get user input
+            const ids = ['name','class','roll','school','teacher'];
+            ids.forEach(id => {
+                let el = document.getElementById('in_'+id);
+                if(el && el.value) {
+                    let targets = document.querySelectorAll('.out_'+id);
+                    targets.forEach(e => e.textContent = el.value);
+                }
+            });
+
+            // Hide UI Overlay
+            document.getElementById('ui').style.display = 'none';
+
+            // Auto Trigger Browser Print (User must select "Save as PDF")
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        function updateData() {
+             const ids = ['name','class','roll','school','teacher'];
+            ids.forEach(id => {
+                let el = document.getElementById('in_'+id);
+                if(el && el.value) {
+                    let targets = document.querySelectorAll('.out_'+id);
+                    targets.forEach(e => e.textContent = el.value);
+                }
+            });
+            alert("Details updated!");
+        }
+
+        function editDetails() {
+            document.getElementById('ui').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
